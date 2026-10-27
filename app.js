@@ -344,18 +344,47 @@
       }
     });
 
-    // Theme Selector
-    document.getElementById('select-theme').addEventListener('change', (e) => {
-      const theme = e.target.value;
+    // Background Color Customizer
+    const bgPicker = document.getElementById('picker-bg-color');
+    const bgPresetSelect = document.getElementById('select-bg-preset');
+    const bgBadge = document.getElementById('val-bg-color');
+
+    function applyBackgroundColor(hexColor) {
+      if (!hexColor || hexColor === 'custom') return;
+      document.body.style.background = hexColor;
+      if (bgPicker) bgPicker.value = hexColor;
+      if (bgBadge) bgBadge.textContent = hexColor.toUpperCase();
+
+      // Calculate relative luminance to automatically adjust UI contrast
+      const hex = hexColor.replace('#', '');
+      const r = parseInt(hex.substring(0, 2), 16) || 0;
+      const g = parseInt(hex.substring(2, 4), 16) || 0;
+      const b = parseInt(hex.substring(4, 6), 16) || 0;
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
       document.body.className = '';
-      if (theme === 'parchment') {
-        document.body.classList.add('theme-parchment');
-      } else if (theme === 'sunset') {
-        document.body.classList.add('theme-sunset');
-      } else if (theme === 'midnight') {
+      if (luminance < 0.45) {
         document.body.classList.add('theme-midnight');
+      } else {
+        document.body.classList.add('theme-parchment');
       }
-    });
+    }
+
+    if (bgPicker) {
+      bgPicker.addEventListener('input', (e) => {
+        if (bgPresetSelect) bgPresetSelect.value = 'custom';
+        applyBackgroundColor(e.target.value);
+      });
+    }
+
+    if (bgPresetSelect) {
+      bgPresetSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val !== 'custom') {
+          applyBackgroundColor(val);
+        }
+      });
+    }
 
     // Canvas Pan & Zoom Mouse Events
     viewport.addEventListener('mousedown', (e) => {
@@ -412,10 +441,12 @@
       tempCanvas.height = treeCanvas.height;
       const tempCtx = tempCanvas.getContext('2d');
 
-      // Draw background according to active theme
-      let bgColor = '#f6f3eb';
-      if (document.body.classList.contains('theme-sunset')) bgColor = '#17072b';
-      else if (document.body.classList.contains('theme-midnight')) bgColor = '#0a0d14';
+      // Draw background according to active theme or custom background
+      let bgColor = document.body.style.background || '#fbf9f4';
+      if (!document.body.style.background) {
+        if (document.body.classList.contains('theme-sunset')) bgColor = '#17072b';
+        else if (document.body.classList.contains('theme-midnight')) bgColor = '#151d2a';
+      }
 
       tempCtx.fillStyle = bgColor;
       tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);

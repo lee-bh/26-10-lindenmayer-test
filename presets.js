@@ -22,9 +22,9 @@ const PLANT_PRESETS = {
     theme: {
       trunk: '#4a2c1d',
       trunkTip: '#734c38',
-      leaf: '#5a934a',
-      flower: '#f497a9',
-      flowerAccent: '#d84a6b'
+      leaf: '#56a441ff',
+      flower: '#f3e1e4ff',
+      flowerAccent: '#f1acbdff'
     },
     axiom: 'X',
     // Stochastic rules using nylki/lindenmayer function or probability

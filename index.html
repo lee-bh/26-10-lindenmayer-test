@@ -135,13 +135,23 @@
 
           <div class="control-group">
             <div class="control-label-row">
-              <span>배경 및 조명 테마</span>
+              <span>배경색 설정</span>
+              <span id="val-bg-color" class="control-value-badge">#FBF9F4</span>
             </div>
-            <select id="select-theme" class="code-editor" style="height: 36px; padding: 4px 8px;">
-              <option value="parchment" selected>식물 도감 화폭 (Botanical Light)</option>
-              <option value="midnight">심야 다크 (Midnight Dark)</option>
-              <option value="sunset">노을빛 정원 (Sunset Purple)</option>
-            </select>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="color" id="picker-bg-color" value="#fbf9f4" style="width: 42px; height: 34px; border: 1px solid var(--panel-border); border-radius: var(--radius-sm); padding: 2px; cursor: pointer; background: transparent;">
+              <select id="select-bg-preset" class="code-editor" style="flex: 1; height: 34px; padding: 4px 8px;">
+                <option value="#fbf9f4" selected>식물 도감 화폭 (크림 아이보리)</option>
+                <option value="#ffffff">순백색 캔버스 (White)</option>
+                <option value="#f2ede4">빈티지 양피지 (Parchment)</option>
+                <option value="#eaf0e9">세이지 모스 그린 (Sage)</option>
+                <option value="#fbf2ea">부드러운 살구빛 (Warm Peach)</option>
+                <option value="#1c241f">깊은 숲 잉크 (Deep Forest)</option>
+                <option value="#151d2a">심야 다크 (Midnight)</option>
+                <option value="#17072b">노을빛 보랏빛 (Sunset)</option>
+                <option value="custom">직접 색상 선택 (Custom)</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
