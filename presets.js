@@ -22,10 +22,9 @@ const PLANT_PRESETS = {
     theme: {
       trunk: '#4a2c1d',
       trunkTip: '#734c38',
-      leaf: '#7bb369',
-      flower: '#ffb7c5',
-      flowerAccent: '#ff6584',
-      glow: 'rgba(255, 183, 197, 0.4)'
+      leaf: '#5a934a',
+      flower: '#f497a9',
+      flowerAccent: '#d84a6b'
     },
     axiom: 'X',
     // Stochastic rules using nylki/lindenmayer function or probability
@@ -72,8 +71,7 @@ const PLANT_PRESETS = {
       trunkTip: '#4b3c32',
       leaf: '#2d6a4f',
       flower: '#d8f3dc',
-      flowerAccent: '#95d5b2',
-      glow: 'rgba(45, 106, 79, 0.3)'
+      flowerAccent: '#95d5b2'
     },
     axiom: 'X',
     productions: {
@@ -117,10 +115,9 @@ const PLANT_PRESETS = {
     theme: {
       trunk: '#1b4332',
       trunkTip: '#40916c',
-      leaf: '#52b788',
+      leaf: '#3b8b62',
       flower: '#74c69d',
-      flowerAccent: '#95d5b2',
-      glow: 'rgba(82, 183, 136, 0.3)'
+      flowerAccent: '#95d5b2'
     },
     axiom: 'X',
     productions: {
@@ -137,9 +134,9 @@ const PLANT_PRESETS = {
 
   bioluminescentAlien: {
     id: 'bioluminescentAlien',
-    name: '네온 생체발광 외계식물 (Bioluminescent Flora)',
+    name: '청록빛 외계식물 (Crystal Cyan Flora)',
     category: 'Sci-Fi',
-    description: '어두운 심해나 외계 행성에서 빛을 내뿜으며 자라는 발광 유기체입니다.',
+    description: '결정질 마디와 신비로운 청록 잎을 지닌 이국적인 식물입니다.',
     iterations: 4,
     angle: 28,
     angleVariance: 10,
@@ -151,12 +148,11 @@ const PLANT_PRESETS = {
     leafProbability: 0.75,
     flowerProbability: 0.85,
     theme: {
-      trunk: '#0f172a',
-      trunkTip: '#06b6d4',
-      leaf: '#3b82f6',
-      flower: '#ec4899',
-      flowerAccent: '#a855f7',
-      glow: 'rgba(6, 182, 212, 0.8)'
+      trunk: '#133e48',
+      trunkTip: '#088395',
+      leaf: '#0a9396',
+      flower: '#94d2bd',
+      flowerAccent: '#e9d8a6'
     },
     axiom: 'X',
     productions: {
@@ -198,12 +194,11 @@ const PLANT_PRESETS = {
     leafProbability: 0.9,
     flowerProbability: 0,
     theme: {
-      trunk: '#2d6a4f',
-      trunkTip: '#74c69d',
-      leaf: '#95d5b2',
+      trunk: '#24523d',
+      trunkTip: '#4a8264',
+      leaf: '#629e7c',
       flower: '#d8f3dc',
-      flowerAccent: '#b7e4c7',
-      glow: 'rgba(116, 198, 157, 0.35)'
+      flowerAccent: '#b7e4c7'
     },
     axiom: 'F',
     productions: {
@@ -242,9 +237,8 @@ const PLANT_PRESETS = {
       trunk: '#3d261d',
       trunkTip: '#588157',
       leaf: '#3a5a40',
-      flower: '#ffb703',
-      flowerAccent: '#fb8500',
-      glow: 'rgba(255, 183, 3, 0.4)'
+      flower: '#d48b00',
+      flowerAccent: '#c45e00'
     },
     axiom: 'X',
     productions: {

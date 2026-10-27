@@ -58,10 +58,9 @@
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.05,
         color: isCherry
-          ? (Math.random() > 0.5 ? '#ffb7c5' : '#ffccd5')
-          : (isAlien ? (Math.random() > 0.5 ? '#06b6d4' : '#ec4899') : '#a7f3d0'),
-        glow: isAlien,
-        opacity: 0.4 + Math.random() * 0.5
+          ? (Math.random() > 0.5 ? '#f497a9' : '#fbc4cb')
+          : (isAlien ? (Math.random() > 0.5 ? '#088395' : '#0a9396') : '#7bb369'),
+        opacity: 0.45 + Math.random() * 0.4
       };
     }
 
@@ -86,11 +85,6 @@
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rotation);
         ctx.globalAlpha = p.opacity;
-
-        if (p.glow) {
-          ctx.shadowColor = p.color;
-          ctx.shadowBlur = 8;
-        }
 
         ctx.fillStyle = p.color;
         ctx.beginPath();
@@ -166,49 +160,52 @@
    */
   function updateStatsHUD(stats) {
     if (!stats) return;
-    document.getElementById('stat-iterations').textContent = activeConfig.iterations;
-    document.getElementById('stat-branches').textContent = stats.totalBranches.toLocaleString();
-    document.getElementById('stat-depth').textContent = stats.maxDepth;
-    document.getElementById('stat-leaves').textContent = (stats.leafCount + stats.flowerCount).toLocaleString();
-    document.getElementById('stat-axiom-len').textContent = stats.axiomResult.length.toLocaleString();
+    const setIf = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+    setIf('stat-iterations', activeConfig.iterations);
+    setIf('stat-branches', stats.totalBranches.toLocaleString());
+    setIf('stat-depth', stats.maxDepth);
+    setIf('stat-leaves', (stats.leafCount + stats.flowerCount).toLocaleString());
+    setIf('stat-axiom-len', stats.axiomResult.length.toLocaleString());
   }
 
   /**
-   * Populates the Preset Selection List
+   * Populates the Preset Selection Dropdown
    */
   function initPresetUI() {
-    const container = document.getElementById('preset-list');
-    container.innerHTML = '';
+    const select = document.getElementById('select-preset');
+    if (!select) return;
+    select.innerHTML = '';
 
     for (const [key, preset] of Object.entries(PLANT_PRESETS)) {
-      const card = document.createElement('div');
-      card.className = `preset-card ${key === currentPresetKey ? 'active' : ''}`;
-      card.innerHTML = `
-        <div class="preset-card-header">
-          <span class="preset-card-name">${preset.name}</span>
-          <span class="preset-card-tag">${preset.category}</span>
-        </div>
-        <p class="preset-card-desc">${preset.description}</p>
-      `;
-
-      card.addEventListener('click', () => {
-        document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-        currentPresetKey = key;
-        activeConfig = JSON.parse(JSON.stringify(PLANT_PRESETS[key]));
-        engine.currentSeed = Math.random();
-        rebuildSimulation(false);
-        autoFrameTree();
-      });
-
-      container.appendChild(card);
+      const option = document.createElement('option');
+      option.value = key;
+      option.textContent = preset.name;
+      if (key === currentPresetKey) option.selected = true;
+      select.appendChild(option);
     }
+
+    select.addEventListener('change', (e) => {
+      const key = e.target.value;
+      currentPresetKey = key;
+      activeConfig = JSON.parse(JSON.stringify(PLANT_PRESETS[key]));
+      engine.currentSeed = Math.random();
+      rebuildSimulation(false);
+      autoFrameTree();
+    });
   }
 
   /**
    * Syncs UI slider values with activeConfig
    */
   function updateControlsUI() {
+    const presetSel = document.getElementById('select-preset');
+    if (presetSel && presetSel.value !== currentPresetKey) {
+      presetSel.value = currentPresetKey;
+    }
+
     // Sliders
     document.getElementById('val-angle').textContent = `${activeConfig.angle}°`;
     document.getElementById('slider-angle').value = activeConfig.angle;
@@ -235,9 +232,11 @@
     document.getElementById('toggle-leaves').checked = activeConfig.decorations.terminalLeaf !== false;
     document.getElementById('toggle-flowers').checked = !!activeConfig.decorations.terminalFlower;
 
-    // Rules JSON
-    document.getElementById('input-axiom').value = activeConfig.axiom;
-    document.getElementById('input-rules').value = JSON.stringify(activeConfig.productions, null, 2);
+    // Rules JSON (if editor is present)
+    const axiomInput = document.getElementById('input-axiom');
+    if (axiomInput) axiomInput.value = activeConfig.axiom;
+    const rulesInput = document.getElementById('input-rules');
+    if (rulesInput) rulesInput.value = JSON.stringify(activeConfig.productions, null, 2);
   }
 
   /**
@@ -349,8 +348,12 @@
     document.getElementById('select-theme').addEventListener('change', (e) => {
       const theme = e.target.value;
       document.body.className = '';
-      if (theme !== 'midnight') {
-        document.body.classList.add(`theme-${theme}`);
+      if (theme === 'parchment') {
+        document.body.classList.add('theme-parchment');
+      } else if (theme === 'sunset') {
+        document.body.classList.add('theme-sunset');
+      } else if (theme === 'midnight') {
+        document.body.classList.add('theme-midnight');
       }
     });
 
@@ -389,28 +392,32 @@
       view.scale = Math.max(0.2, Math.min(5.0, view.scale));
     }, { passive: false });
 
-    // View Controls
-    document.getElementById('btn-zoom-in').addEventListener('click', () => {
+    // View Controls (Optional)
+    document.getElementById('btn-zoom-in')?.addEventListener('click', () => {
       view.scale = Math.min(5.0, view.scale * 1.25);
     });
 
-    document.getElementById('btn-zoom-out').addEventListener('click', () => {
+    document.getElementById('btn-zoom-out')?.addEventListener('click', () => {
       view.scale = Math.max(0.2, view.scale * 0.8);
     });
 
-    document.getElementById('btn-reset-view').addEventListener('click', () => {
+    document.getElementById('btn-reset-view')?.addEventListener('click', () => {
       autoFrameTree();
     });
 
     // Export PNG
-    document.getElementById('btn-capture').addEventListener('click', () => {
+    document.getElementById('btn-capture')?.addEventListener('click', () => {
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = treeCanvas.width;
       tempCanvas.height = treeCanvas.height;
       const tempCtx = tempCanvas.getContext('2d');
 
-      // Draw background
-      tempCtx.fillStyle = '#0a0d14';
+      // Draw background according to active theme
+      let bgColor = '#f6f3eb';
+      if (document.body.classList.contains('theme-sunset')) bgColor = '#17072b';
+      else if (document.body.classList.contains('theme-midnight')) bgColor = '#0a0d14';
+
+      tempCtx.fillStyle = bgColor;
       tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
       tempCtx.drawImage(treeCanvas, 0, 0);
 

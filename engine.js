@@ -320,19 +320,12 @@ class PlantGrowthEngine {
     const leafColor = theme.leaf || '#7bb369';
     const flowerColor = theme.flower || '#ffb7c5';
     const flowerAccent = theme.flowerAccent || '#ff6584';
-    const glow = theme.glow;
 
     ctx.save();
 
     // Apply viewport zoom & pan
     ctx.translate(viewTransform.x, viewTransform.y);
     ctx.scale(viewTransform.scale, viewTransform.scale);
-
-    // Optional neon glow effect
-    if (glow) {
-      ctx.shadowColor = glow;
-      ctx.shadowBlur = 12 * Math.min(1, progress * 1.5);
-    }
 
     // Recursive drawing function
     const drawBranch = (node, startX, startY, parentAngle, parentGrowthRatio) => {

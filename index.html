@@ -14,7 +14,7 @@
   
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="theme-parchment">
   <div id="app-container">
     <!-- Interactive Canvas Viewport -->
     <div id="canvas-viewport" title="드래그하여 이동, 휠을 굴려 확대/축소할 수 있습니다.">
@@ -22,52 +22,21 @@
       <canvas id="particle-canvas"></canvas>
     </div>
 
-    <!-- Top Header HUD -->
-    <header id="header-bar" class="glass-panel">
-      <div class="brand-section">
-        <div class="brand-icon">🌱</div>
-        <div class="brand-title">
-          <h1>Flora Studio</h1>
-          <p>L-System Stochastic Plant Growth Simulator</p>
-        </div>
-      </div>
+    <!-- Top Left Title (No Box) -->
+    <h1 id="app-title">FLORA</h1>
 
-      <div class="hud-stats">
-        <div class="stat-chip" title="현재 반복 생성 세대수">
-          <span>세대:</span>
-          <strong id="stat-iterations">4</strong>
-        </div>
-        <div class="stat-chip" title="형성된 총 나뭇가지 세그먼트 수">
-          <span>가지:</span>
-          <strong id="stat-branches">0</strong>
-        </div>
-        <div class="stat-chip" title="가지치기 최대 깊이">
-          <span>깊이:</span>
-          <strong id="stat-depth">0</strong>
-        </div>
-        <div class="stat-chip" title="잎사귀 및 꽃/열매 총합">
-          <span>잎 & 꽃:</span>
-          <strong id="stat-leaves">0</strong>
-        </div>
-        <div class="stat-chip" title="L-System 문자열 길이">
-          <span>기호 수:</span>
-          <strong id="stat-axiom-len">0</strong>
-        </div>
-      </div>
-    </header>
-
-    <!-- Left Sidebar: Plant Species & Presets -->
-    <aside id="sidebar-left" class="glass-panel">
-      <div class="panel-title">
-        <span>🌿 식물 종 선택 (Species)</span>
-      </div>
-      <div id="preset-list" class="preset-list">
-        <!-- Dynamically injected via presets.js -->
-      </div>
-    </aside>
-
-    <!-- Right Sidebar: Genetics & Environment & Rules -->
+    <!-- Right Sidebar: Controls & Custom Rules -->
     <aside id="sidebar-right" class="glass-panel">
+      <!-- Species Selector at the Top -->
+      <div class="control-group" style="padding-bottom: 8px; border-bottom: 1px solid var(--panel-border);">
+        <div class="control-label-row" style="margin-bottom: 4px;">
+          <span style="font-weight: 700; color: var(--accent-green); font-size: 0.82rem;">식물 종 선택</span>
+        </div>
+        <select id="select-preset" class="code-editor" style="height: 38px; padding: 6px 10px; font-size: 0.84rem; font-weight: 600;">
+          <!-- Options injected via JavaScript -->
+        </select>
+      </div>
+
       <!-- Section 1: Plant Genetics -->
       <div class="accordion-item">
         <div class="accordion-header">
@@ -169,16 +138,16 @@
               <span>배경 및 조명 테마</span>
             </div>
             <select id="select-theme" class="code-editor" style="height: 36px; padding: 4px 8px;">
-              <option value="midnight">심야 생체발광 (Midnight Dark)</option>
+              <option value="parchment" selected>식물 도감 화폭 (Botanical Light)</option>
+              <option value="midnight">심야 다크 (Midnight Dark)</option>
               <option value="sunset">노을빛 정원 (Sunset Purple)</option>
-              <option value="parchment">식물 도감 화폭 (Botanical Light)</option>
             </select>
           </div>
         </div>
       </div>
 
-      <!-- Section 3: Advanced L-System Rule Editor -->
-      <div class="accordion-item">
+      <!-- Section 3: Advanced L-System Rule Editor (Hidden for now) -->
+      <div class="accordion-item" style="display: none;">
         <div class="accordion-header">
           <span>🧪 Lindenmayer 규칙 편집기</span>
           <span class="toggle-icon">▾</span>
@@ -226,8 +195,8 @@
       </div>
     </div>
 
-    <!-- View Controls (Bottom Right) -->
-    <div id="view-controls">
+    <!-- View Controls (Bottom Right - Hidden) -->
+    <div id="view-controls" style="display: none;">
       <button id="btn-zoom-in" class="icon-btn" data-tooltip="확대 (+)">🔍+</button>
       <button id="btn-zoom-out" class="icon-btn" data-tooltip="축소 (-)">🔍-</button>
       <button id="btn-reset-view" class="icon-btn" data-tooltip="화면 중앙 맞추기">🎯</button>
