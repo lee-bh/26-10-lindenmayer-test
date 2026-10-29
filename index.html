@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flora Studio - Lindenmayer 식물 성장 시뮬레이터</title>
   <meta name="description" content="nylki/lindenmayer 기반의 무작위 유전적 식물 성장 및 바람 물리를 시뮬레이션하는 인터랙티브 HTML5 캔버스 인터페이스">
-  
+
   <!-- Web Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="theme-midnight">
   <div id="app-container">
     <!-- Interactive Canvas Viewport -->
@@ -29,13 +34,14 @@
     </div>
 
     <!-- Right Sidebar: Controls & Custom Rules -->
-    <aside id="sidebar-right" class="glass-panel">
+    <aside id="sidebar-right" class="glass-panel" style="display: none;">
       <!-- Species Selector at the Top -->
       <div class="control-group" style="padding-bottom: 8px; border-bottom: 1px solid var(--panel-border);">
         <div class="control-label-row" style="margin-bottom: 4px;">
           <span style="font-weight: 700; color: var(--accent-green); font-size: 0.82rem;">식물 종 선택</span>
         </div>
-        <select id="select-preset" class="code-editor" style="height: 38px; padding: 6px 10px; font-size: 0.84rem; font-weight: 600;">
+        <select id="select-preset" class="code-editor"
+          style="height: 38px; padding: 6px 10px; font-size: 0.84rem; font-weight: 600;">
           <!-- Options injected via JavaScript -->
         </select>
       </div>
@@ -142,7 +148,8 @@
               <span id="val-bg-color" class="control-value-badge">#1C241F</span>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
-              <input type="color" id="picker-bg-color" value="#1c241f" style="width: 42px; height: 34px; border: 1px solid var(--panel-border); border-radius: var(--radius-sm); padding: 2px; cursor: pointer; background: transparent;">
+              <input type="color" id="picker-bg-color" value="#1c241f"
+                style="width: 42px; height: 34px; border: 1px solid var(--panel-border); border-radius: var(--radius-sm); padding: 2px; cursor: pointer; background: transparent;">
               <select id="select-bg-preset" class="code-editor" style="flex: 1; height: 34px; padding: 4px 8px;">
                 <option value="#fbf9f4">식물 도감 화폭 (크림 아이보리)</option>
                 <option value="#ffffff">순백색 캔버스 (White)</option>
@@ -180,7 +187,8 @@
             <textarea id="input-rules" class="code-editor" rows="6"></textarea>
           </div>
 
-          <button id="btn-apply-rules" class="dock-btn" style="width: 100%; justify-content: center; background: rgba(16, 185, 129, 0.2); border-color: var(--accent-green); color: var(--accent-green);">
+          <button id="btn-apply-rules" class="dock-btn"
+            style="width: 100%; justify-content: center; background: rgba(16, 185, 129, 0.2); border-color: var(--accent-green); color: var(--accent-green);">
             ✓ 커스텀 규칙 적용하기
           </button>
         </div>
@@ -190,19 +198,19 @@
     <!-- Bottom Floating Dock -->
     <div id="dock-bottom" class="glass-panel">
       <button id="btn-play-pause" class="dock-btn primary" title="성장 시뮬레이션을 일시정지하거나 계속합니다.">
-        ⏸ 일시정지
+        멈춤
       </button>
 
       <button id="btn-resprout" class="dock-btn" title="씨앗 상태(0%)부터 다시 자라납니다.">
-        🌱 처음부터 자라기
+        다시시작
       </button>
 
       <button id="btn-mutate" class="dock-btn mutate" title="새로운 무작위 유전 시드를 생성하여 다른 형태로 자라게 합니다.">
-        🎲 새로운 돌연변이
+        돌연변이
       </button>
 
       <button id="btn-clear-plants" class="dock-btn" title="화면의 모든 식물을 지웁니다.">
-        🧹 비우기
+        삭제
       </button>
 
       <div class="growth-scrubber" title="성장 진행도를 수동으로 탐색합니다.">
@@ -235,4 +243,5 @@
   <script src="engine.js"></script>
   <script src="app.js"></script>
 </body>
+
 </html>
