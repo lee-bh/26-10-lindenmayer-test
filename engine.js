@@ -307,9 +307,24 @@ class PlantGrowthEngine {
   }
 
   /**
-   * Render the tree onto the HTML5 2D Canvas
+   * Render the tree onto the HTML5 2D Canvas with viewTransform
    */
   render(ctx, config, viewTransform) {
+    if (!this.treeRoot || this.allNodes.length === 0) return;
+
+    ctx.save();
+    ctx.translate(viewTransform.x, viewTransform.y);
+    ctx.scale(viewTransform.scale, viewTransform.scale);
+
+    this.renderTreeOnly(ctx, config, 0, 0);
+
+    ctx.restore();
+  }
+
+  /**
+   * Renders the tree branches, leaves and flowers at a specific local origin
+   */
+  renderTreeOnly(ctx, config, rootX = 0, rootY = 0) {
     if (!this.treeRoot || this.allNodes.length === 0) return;
 
     const total = this.totalBranches;
@@ -320,12 +335,6 @@ class PlantGrowthEngine {
     const leafColor = theme.leaf || '#7bb369';
     const flowerColor = theme.flower || '#ffb7c5';
     const flowerAccent = theme.flowerAccent || '#ff6584';
-
-    ctx.save();
-
-    // Apply viewport zoom & pan
-    ctx.translate(viewTransform.x, viewTransform.y);
-    ctx.scale(viewTransform.scale, viewTransform.scale);
 
     // Recursive drawing function
     const drawBranch = (node, startX, startY, parentAngle, parentGrowthRatio) => {
@@ -395,10 +404,8 @@ class PlantGrowthEngine {
       }
     };
 
-    // Draw from trunk root (0, 0)
-    drawBranch(this.treeRoot, 0, 0, 0, 1.0);
-
-    ctx.restore();
+    // Draw from trunk root
+    drawBranch(this.treeRoot, rootX, rootY, 0, 1.0);
   }
 
   /**

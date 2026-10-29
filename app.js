@@ -1,7 +1,7 @@
 /**
  * Flora Studio Application Controller
- * Handles UI interactions, canvas view transformations, particle effects,
- * and connects with PlantGrowthEngine & Lindenmayer.js.
+ * Supports multi-plant interactive planting on click, organic growth,
+ * wind dynamics, and viewport panning & zooming.
  */
 
 (function () {
@@ -14,12 +14,17 @@
   const particleCtx = particleCanvas.getContext('2d');
   const viewport = document.getElementById('canvas-viewport');
 
-  // Engines
-  const engine = new PlantGrowthEngine();
-
-  // Active State
+  // Active Preset & Configuration
   let currentPresetKey = 'cherryBlossom';
   let activeConfig = JSON.parse(JSON.stringify(PLANT_PRESETS[currentPresetKey]));
+  // Default: leaves off on initial load
+  activeConfig.decorations.terminalLeaf = false;
+
+  // Global Simulation Parameters
+  let globalWindEnabled = true;
+  let globalWindStrength = 0.04;
+  let globalGrowthSpeed = 0.008;
+  let globalIsGrowing = true;
 
   // View Transform (Pan & Zoom)
   const view = {
@@ -30,6 +35,51 @@
     startX: 0,
     startY: 0
   };
+
+  // Sprout Click Waves / Ripples for interactive feedback
+  const ripples = [];
+
+  /**
+   * Individual Plant Instance
+   */
+  class PlantInstance {
+    constructor(x, y, config, seed = Math.random()) {
+      this.id = Date.now() + Math.random();
+      this.x = x;
+      this.y = y;
+      this.seed = seed;
+      this.config = JSON.parse(JSON.stringify(config));
+      this.engine = new PlantGrowthEngine();
+      this.engine.windEnabled = globalWindEnabled;
+      this.engine.windStrength = globalWindStrength;
+      this.engine.growthSpeed = globalGrowthSpeed;
+      this.engine.isGrowing = globalIsGrowing;
+      this.engine.windTime = Math.random() * 20; // Natural phase variance
+      this.engine.generate(this.config, this.seed);
+      this.engine.growthProgress = 0.0;
+    }
+
+    update(dt) {
+      this.engine.windEnabled = globalWindEnabled;
+      this.engine.windStrength = globalWindStrength;
+      this.engine.growthSpeed = globalGrowthSpeed;
+      this.engine.update(dt);
+    }
+
+    render(ctx) {
+      this.engine.renderTreeOnly(ctx, this.config, this.x, this.y);
+    }
+
+    mutate() {
+      this.seed = Math.random();
+      this.engine.generate(this.config, this.seed);
+      this.engine.growthProgress = 0.0;
+      this.engine.isGrowing = true;
+    }
+  }
+
+  // Multi-Plant Collection
+  let plants = [];
 
   // Falling Petals / Spores Particle System
   class ParticleSystem {
@@ -88,7 +138,6 @@
 
         ctx.fillStyle = p.color;
         ctx.beginPath();
-        // Petal shape
         ctx.ellipse(0, 0, p.size * 0.6, p.size, 0, 0, Math.PI * 2);
         ctx.fill();
 
@@ -119,56 +168,45 @@
   }
 
   /**
-   * Automatically centers the tree within the viewport
+   * Automatically centers the first plant in the viewport
    */
   function autoFrameTree() {
     const width = viewport.clientWidth;
     const height = viewport.clientHeight;
-    const b = engine.bounds;
 
-    const availableW = width * 0.65;
-    const availableH = height * 0.72;
-    const scaleX = availableW / b.width;
-    const scaleY = availableH / b.height;
-    view.scale = Math.min(1.8, Math.max(0.4, Math.min(scaleX, scaleY)));
-
-    // Position trunk root in lower center of viewport
+    view.scale = 1.0;
     view.x = width * 0.5;
     view.y = height * 0.82;
   }
 
   /**
-   * Generates tree and resets animation
+   * Spawns an interactive ripple effect at the planted location
    */
-  function rebuildSimulation(keepProgress = false) {
-    const oldProgress = engine.growthProgress;
-    const stats = engine.generate(activeConfig, engine.currentSeed);
-
-    if (!keepProgress) {
-      engine.growthProgress = 0.0;
-      engine.isGrowing = true;
-    } else {
-      engine.growthProgress = oldProgress;
-    }
-
-    updateStatsHUD(stats);
-    updateControlsUI();
+  function addSproutRipple(worldX, worldY) {
+    ripples.push({
+      x: worldX,
+      y: worldY,
+      radius: 3,
+      maxRadius: 28,
+      alpha: 0.7
+    });
   }
 
   /**
-   * Updates HUD statistics display
+   * Spawns a new plant branch at world coordinates
    */
-  function updateStatsHUD(stats) {
-    if (!stats) return;
-    const setIf = (id, val) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = val;
-    };
-    setIf('stat-iterations', activeConfig.iterations);
-    setIf('stat-branches', stats.totalBranches.toLocaleString());
-    setIf('stat-depth', stats.maxDepth);
-    setIf('stat-leaves', (stats.leafCount + stats.flowerCount).toLocaleString());
-    setIf('stat-axiom-len', stats.axiomResult.length.toLocaleString());
+  function plantAtWorldCoord(worldX, worldY) {
+    const newPlant = new PlantInstance(worldX, worldY, activeConfig, Math.random());
+    plants.push(newPlant);
+    addSproutRipple(worldX, worldY);
+  }
+
+  /**
+   * Resets simulation and creates initial center plant
+   */
+  function initFirstPlant() {
+    plants = [];
+    plantAtWorldCoord(0, 0);
   }
 
   /**
@@ -191,9 +229,7 @@
       const key = e.target.value;
       currentPresetKey = key;
       activeConfig = JSON.parse(JSON.stringify(PLANT_PRESETS[key]));
-      engine.currentSeed = Math.random();
-      rebuildSimulation(false);
-      autoFrameTree();
+      updateControlsUI();
     });
   }
 
@@ -222,13 +258,13 @@
     document.getElementById('val-iterations').textContent = activeConfig.iterations;
     document.getElementById('slider-iterations').value = activeConfig.iterations;
 
-    document.getElementById('val-growth-speed').textContent = `${(engine.growthSpeed * 1000).toFixed(0)}`;
-    document.getElementById('slider-growth-speed').value = engine.growthSpeed;
+    document.getElementById('val-growth-speed').textContent = `${(globalGrowthSpeed * 1000).toFixed(0)}`;
+    document.getElementById('slider-growth-speed').value = globalGrowthSpeed;
 
-    document.getElementById('val-wind').textContent = `${(engine.windStrength * 100).toFixed(0)}%`;
-    document.getElementById('slider-wind').value = engine.windStrength;
+    document.getElementById('val-wind').textContent = `${(globalWindStrength * 100).toFixed(0)}%`;
+    document.getElementById('slider-wind').value = globalWindStrength;
 
-    document.getElementById('toggle-wind').checked = engine.windEnabled;
+    document.getElementById('toggle-wind').checked = globalWindEnabled;
     document.getElementById('toggle-leaves').checked = activeConfig.decorations.terminalLeaf !== false;
     document.getElementById('toggle-flowers').checked = !!activeConfig.decorations.terminalFlower;
 
@@ -240,105 +276,122 @@
   }
 
   /**
-   * Sets up all event listeners for interactive buttons and sliders
+   * Sets up all event listeners for interactive buttons, sliders, and canvas clicking
    */
   function setupEventListeners() {
     // Window Resize
     window.addEventListener('resize', () => {
       handleResize();
-      autoFrameTree();
     });
 
     // Dock Buttons
     const btnPlayPause = document.getElementById('btn-play-pause');
     btnPlayPause.addEventListener('click', () => {
-      engine.isGrowing = !engine.isGrowing;
-      btnPlayPause.innerHTML = engine.isGrowing ? '⏸ 일시정지' : '▶ 재생';
+      globalIsGrowing = !globalIsGrowing;
+      plants.forEach(p => p.engine.isGrowing = globalIsGrowing);
+      btnPlayPause.innerHTML = globalIsGrowing ? '⏸ 일시정지' : '▶ 재생';
     });
 
     document.getElementById('btn-resprout').addEventListener('click', () => {
-      engine.growthProgress = 0.0;
-      engine.isGrowing = true;
+      globalIsGrowing = true;
+      plants.forEach(p => {
+        p.engine.growthProgress = 0.0;
+        p.engine.isGrowing = true;
+      });
       btnPlayPause.innerHTML = '⏸ 일시정지';
     });
 
     document.getElementById('btn-mutate').addEventListener('click', () => {
-      engine.currentSeed = Math.random();
-      rebuildSimulation(false);
+      if (plants.length > 0) {
+        // Mutate the most recent plant or all
+        const target = plants[plants.length - 1];
+        target.mutate();
+      } else {
+        plantAtWorldCoord(0, 0);
+      }
+      globalIsGrowing = true;
       btnPlayPause.innerHTML = '⏸ 일시정지';
+    });
+
+    // Clear all plants button
+    document.getElementById('btn-clear-plants')?.addEventListener('click', () => {
+      plants = [];
     });
 
     // Growth Scrubber Slider
     const growthScrubber = document.getElementById('slider-growth-progress');
     growthScrubber.addEventListener('input', (e) => {
-      engine.growthProgress = parseFloat(e.target.value);
+      const val = parseFloat(e.target.value);
+      plants.forEach(p => {
+        p.engine.growthProgress = val;
+      });
+      document.getElementById('val-growth-progress').textContent = `${(val * 100).toFixed(0)}%`;
     });
 
     // Parameter Sliders
     document.getElementById('slider-angle').addEventListener('input', (e) => {
       activeConfig.angle = parseFloat(e.target.value);
       document.getElementById('val-angle').textContent = `${activeConfig.angle}°`;
-      rebuildSimulation(true);
     });
 
     document.getElementById('slider-angle-var').addEventListener('input', (e) => {
       activeConfig.angleVariance = parseFloat(e.target.value);
       document.getElementById('val-angle-var').textContent = `±${activeConfig.angleVariance}°`;
-      rebuildSimulation(true);
     });
 
     document.getElementById('slider-length').addEventListener('input', (e) => {
       activeConfig.branchLength = parseFloat(e.target.value);
       document.getElementById('val-length').textContent = `${activeConfig.branchLength}px`;
-      rebuildSimulation(true);
     });
 
     document.getElementById('slider-decay').addEventListener('input', (e) => {
       activeConfig.lengthDecay = parseFloat(e.target.value);
       document.getElementById('val-decay').textContent = activeConfig.lengthDecay.toFixed(2);
-      rebuildSimulation(true);
     });
 
     document.getElementById('slider-iterations').addEventListener('input', (e) => {
       activeConfig.iterations = parseInt(e.target.value, 10);
       document.getElementById('val-iterations').textContent = activeConfig.iterations;
-      rebuildSimulation(false);
-      autoFrameTree();
     });
 
     document.getElementById('slider-growth-speed').addEventListener('input', (e) => {
-      engine.growthSpeed = parseFloat(e.target.value);
-      document.getElementById('val-growth-speed').textContent = `${(engine.growthSpeed * 1000).toFixed(0)}`;
+      globalGrowthSpeed = parseFloat(e.target.value);
+      plants.forEach(p => p.engine.growthSpeed = globalGrowthSpeed);
+      document.getElementById('val-growth-speed').textContent = `${(globalGrowthSpeed * 1000).toFixed(0)}`;
     });
 
     document.getElementById('slider-wind').addEventListener('input', (e) => {
-      engine.windStrength = parseFloat(e.target.value);
-      document.getElementById('val-wind').textContent = `${(engine.windStrength * 100).toFixed(0)}%`;
+      globalWindStrength = parseFloat(e.target.value);
+      plants.forEach(p => p.engine.windStrength = globalWindStrength);
+      document.getElementById('val-wind').textContent = `${(globalWindStrength * 100).toFixed(0)}%`;
     });
 
     document.getElementById('toggle-wind').addEventListener('change', (e) => {
-      engine.windEnabled = e.target.checked;
+      globalWindEnabled = e.target.checked;
+      plants.forEach(p => p.engine.windEnabled = globalWindEnabled);
     });
 
     document.getElementById('toggle-leaves').addEventListener('change', (e) => {
       activeConfig.decorations.terminalLeaf = e.target.checked;
-      rebuildSimulation(true);
+      plants.forEach(p => {
+        p.config.decorations.terminalLeaf = e.target.checked;
+      });
     });
 
     document.getElementById('toggle-flowers').addEventListener('change', (e) => {
       activeConfig.decorations.terminalFlower = e.target.checked;
-      rebuildSimulation(true);
+      plants.forEach(p => {
+        p.config.decorations.terminalFlower = e.target.checked;
+      });
     });
 
     // Custom Rules Apply Button
-    document.getElementById('btn-apply-rules').addEventListener('click', () => {
+    document.getElementById('btn-apply-rules')?.addEventListener('click', () => {
       try {
         const axiom = document.getElementById('input-axiom').value.trim();
         const rules = JSON.parse(document.getElementById('input-rules').value);
         activeConfig.axiom = axiom;
         activeConfig.productions = rules;
-        rebuildSimulation(false);
-        autoFrameTree();
       } catch (err) {
         alert('L-System 규칙 JSON 형식에 오류가 있습니다:\n' + err.message);
       }
@@ -377,6 +430,9 @@
       });
     }
 
+    // Apply default background on initial load
+    applyBackgroundColor('#1c241f');
+
     if (bgPresetSelect) {
       bgPresetSelect.addEventListener('change', (e) => {
         const val = e.target.value;
@@ -386,77 +442,75 @@
       });
     }
 
-    // Canvas Pan & Zoom Mouse Events
+    // Canvas Interaction: Click to Sprout New Plant vs Pan/Drag Viewport
+    let pointerDownInfo = null;
+    let isDragging = false;
+
     viewport.addEventListener('mousedown', (e) => {
       if (e.button === 0) { // Left click
-        view.isPanning = true;
-        view.startX = e.clientX - view.x;
-        view.startY = e.clientY - view.y;
-        viewport.classList.add('panning');
+        pointerDownInfo = {
+          clientX: e.clientX,
+          clientY: e.clientY,
+          time: performance.now(),
+          startX: e.clientX - view.x,
+          startY: e.clientY - view.y
+        };
+        isDragging = false;
       }
     });
 
     window.addEventListener('mousemove', (e) => {
-      if (view.isPanning) {
-        view.x = e.clientX - view.startX;
-        view.y = e.clientY - view.startY;
+      if (!pointerDownInfo) return;
+
+      const dist = Math.hypot(e.clientX - pointerDownInfo.clientX, e.clientY - pointerDownInfo.clientY);
+      if (dist > 5) {
+        isDragging = true;
+        view.isPanning = true;
+        viewport.classList.add('panning');
+        view.x = e.clientX - pointerDownInfo.startX;
+        view.y = e.clientY - pointerDownInfo.startY;
       }
     });
 
-    window.addEventListener('mouseup', () => {
-      view.isPanning = false;
-      viewport.classList.remove('panning');
+    window.addEventListener('mouseup', (e) => {
+      if (pointerDownInfo) {
+        const dist = Math.hypot(e.clientX - pointerDownInfo.clientX, e.clientY - pointerDownInfo.clientY);
+        const elapsed = performance.now() - pointerDownInfo.time;
+
+        // If it was a clean stationary click without significant dragging:
+        if (!isDragging && dist < 6 && elapsed < 400) {
+          // Check if click was inside viewport and not on floating panels
+          const rect = viewport.getBoundingClientRect();
+          const screenX = e.clientX - rect.left;
+          const screenY = e.clientY - rect.top;
+
+          // Convert screen coordinates into world coordinates
+          const worldX = (screenX - view.x) / view.scale;
+          const worldY = (screenY - view.y) / view.scale;
+
+          // Plant a new branch/tree at click location!
+          plantAtWorldCoord(worldX, worldY);
+        }
+
+        pointerDownInfo = null;
+        isDragging = false;
+        view.isPanning = false;
+        viewport.classList.remove('panning');
+      }
     });
 
+    // Zoom toward cursor
     viewport.addEventListener('wheel', (e) => {
       e.preventDefault();
       const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
       const mouseX = e.clientX;
       const mouseY = e.clientY;
 
-      // Zoom toward cursor
       view.x = mouseX - (mouseX - view.x) * zoomFactor;
       view.y = mouseY - (mouseY - view.y) * zoomFactor;
       view.scale *= zoomFactor;
-      view.scale = Math.max(0.2, Math.min(5.0, view.scale));
+      view.scale = Math.max(0.15, Math.min(5.0, view.scale));
     }, { passive: false });
-
-    // View Controls (Optional)
-    document.getElementById('btn-zoom-in')?.addEventListener('click', () => {
-      view.scale = Math.min(5.0, view.scale * 1.25);
-    });
-
-    document.getElementById('btn-zoom-out')?.addEventListener('click', () => {
-      view.scale = Math.max(0.2, view.scale * 0.8);
-    });
-
-    document.getElementById('btn-reset-view')?.addEventListener('click', () => {
-      autoFrameTree();
-    });
-
-    // Export PNG
-    document.getElementById('btn-capture')?.addEventListener('click', () => {
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = treeCanvas.width;
-      tempCanvas.height = treeCanvas.height;
-      const tempCtx = tempCanvas.getContext('2d');
-
-      // Draw background according to active theme or custom background
-      let bgColor = document.body.style.background || '#fbf9f4';
-      if (!document.body.style.background) {
-        if (document.body.classList.contains('theme-sunset')) bgColor = '#17072b';
-        else if (document.body.classList.contains('theme-midnight')) bgColor = '#151d2a';
-      }
-
-      tempCtx.fillStyle = bgColor;
-      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-      tempCtx.drawImage(treeCanvas, 0, 0);
-
-      const link = document.createElement('a');
-      link.download = `lindenmayer-plant-${currentPresetKey}-${Date.now()}.png`;
-      link.href = tempCanvas.toDataURL('image/png');
-      link.click();
-    });
 
     // Collapsible panels
     document.querySelectorAll('.accordion-header').forEach(hdr => {
@@ -482,21 +536,52 @@
     const dt = Math.min(0.1, (currentTime - lastTime) / 1000);
     lastTime = currentTime;
 
-    // Update Growth and Wind
-    engine.update(dt);
-
-    // Sync Scrubber Slider with growth progress
-    growthScrubber.value = engine.growthProgress;
-    document.getElementById('val-growth-progress').textContent = `${(engine.growthProgress * 100).toFixed(0)}%`;
-
-    // Render tree
     const width = viewport.clientWidth;
     const height = viewport.clientHeight;
     treeCtx.clearRect(0, 0, width, height);
-    engine.render(treeCtx, activeConfig, view);
+
+    treeCtx.save();
+    treeCtx.translate(view.x, view.y);
+    treeCtx.scale(view.scale, view.scale);
+
+    // Update and render all planted plants
+    for (const plant of plants) {
+      plant.update(dt);
+      plant.render(treeCtx);
+    }
+
+    // Render ripple waves for newly sprouted branches
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const rip = ripples[i];
+      rip.radius += dt * 38;
+      rip.alpha -= dt * 1.2;
+
+      if (rip.alpha <= 0) {
+        ripples.splice(i, 1);
+        continue;
+      }
+
+      treeCtx.save();
+      treeCtx.beginPath();
+      treeCtx.arc(rip.x, rip.y, rip.radius, 0, Math.PI * 2);
+      treeCtx.strokeStyle = `rgba(45, 106, 79, ${Math.max(0, rip.alpha)})`;
+      treeCtx.lineWidth = 1.8 / view.scale;
+      treeCtx.stroke();
+      treeCtx.restore();
+    }
+
+    treeCtx.restore();
+
+    // Update scrubber UI with average or latest progress
+    if (plants.length > 0) {
+      const latest = plants[plants.length - 1];
+      const prog = latest.engine.growthProgress;
+      growthScrubber.value = prog;
+      document.getElementById('val-growth-progress').textContent = `${(prog * 100).toFixed(0)}%`;
+    }
 
     // Update and render particle system (petals & spores)
-    particles.update(width, height, engine.windEnabled ? engine.windStrength : 0);
+    particles.update(width, height, globalWindEnabled ? globalWindStrength : 0);
     particles.render(particleCtx);
 
     requestAnimationFrame(loop);
@@ -508,8 +593,9 @@
   function init() {
     handleResize();
     initPresetUI();
+    updateControlsUI();
     setupEventListeners();
-    rebuildSimulation(false);
+    initFirstPlant();
     autoFrameTree();
     requestAnimationFrame(loop);
   }

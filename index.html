@@ -14,7 +14,7 @@
   
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="theme-parchment">
+<body class="theme-midnight">
   <div id="app-container">
     <!-- Interactive Canvas Viewport -->
     <div id="canvas-viewport" title="드래그하여 이동, 휠을 굴려 확대/축소할 수 있습니다.">
@@ -23,7 +23,10 @@
     </div>
 
     <!-- Top Left Title (No Box) -->
-    <h1 id="app-title">FLORA</h1>
+    <div id="brand-header">
+      <h1 id="app-title">FLORA</h1>
+      <p id="app-subtitle">화면의 원하는 곳을 클릭하면 새로운 가지가 자라납니다</p>
+    </div>
 
     <!-- Right Sidebar: Controls & Custom Rules -->
     <aside id="sidebar-right" class="glass-panel">
@@ -120,7 +123,7 @@
           <div class="toggle-row">
             <span>잎사귀 (Leaves) 표시</span>
             <label class="switch">
-              <input type="checkbox" id="toggle-leaves" checked>
+              <input type="checkbox" id="toggle-leaves">
               <span class="slider-toggle"></span>
             </label>
           </div>
@@ -136,17 +139,17 @@
           <div class="control-group">
             <div class="control-label-row">
               <span>배경색 설정</span>
-              <span id="val-bg-color" class="control-value-badge">#FBF9F4</span>
+              <span id="val-bg-color" class="control-value-badge">#1C241F</span>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
-              <input type="color" id="picker-bg-color" value="#fbf9f4" style="width: 42px; height: 34px; border: 1px solid var(--panel-border); border-radius: var(--radius-sm); padding: 2px; cursor: pointer; background: transparent;">
+              <input type="color" id="picker-bg-color" value="#1c241f" style="width: 42px; height: 34px; border: 1px solid var(--panel-border); border-radius: var(--radius-sm); padding: 2px; cursor: pointer; background: transparent;">
               <select id="select-bg-preset" class="code-editor" style="flex: 1; height: 34px; padding: 4px 8px;">
-                <option value="#fbf9f4" selected>식물 도감 화폭 (크림 아이보리)</option>
+                <option value="#fbf9f4">식물 도감 화폭 (크림 아이보리)</option>
                 <option value="#ffffff">순백색 캔버스 (White)</option>
                 <option value="#f2ede4">빈티지 양피지 (Parchment)</option>
                 <option value="#eaf0e9">세이지 모스 그린 (Sage)</option>
                 <option value="#fbf2ea">부드러운 살구빛 (Warm Peach)</option>
-                <option value="#1c241f">깊은 숲 잉크 (Deep Forest)</option>
+                <option value="#1c241f" selected>깊은 숲 잉크 (Deep Forest)</option>
                 <option value="#151d2a">심야 다크 (Midnight)</option>
                 <option value="#17072b">노을빛 보랏빛 (Sunset)</option>
                 <option value="custom">직접 색상 선택 (Custom)</option>
@@ -196,6 +199,10 @@
 
       <button id="btn-mutate" class="dock-btn mutate" title="새로운 무작위 유전 시드를 생성하여 다른 형태로 자라게 합니다.">
         🎲 새로운 돌연변이
+      </button>
+
+      <button id="btn-clear-plants" class="dock-btn" title="화면의 모든 식물을 지웁니다.">
+        🧹 비우기
       </button>
 
       <div class="growth-scrubber" title="성장 진행도를 수동으로 탐색합니다.">
